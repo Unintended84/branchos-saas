@@ -3,8 +3,8 @@ from openai import OpenAI
 
 st.title("Decision Simulator")
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
+import os
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 user_input = st.text_area("Scrivi una decisione")
 
 def simulate(prompt):
