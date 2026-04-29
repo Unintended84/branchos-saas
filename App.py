@@ -1,7 +1,5 @@
 import streamlit as st
-import requests
-import random
-
+from openai import OpenAI
 
 # ---------------- PAGE ----------------
 
@@ -15,229 +13,124 @@ st.markdown("""
 <div style="text-align:center;padding:10px;">
 <h1>🧠 ScenarioOS</h1>
 <p style="color:gray;font-size:16px;">
-Civilization Reaction Engine — simulating cascading global responses to major events.
+Emergent Civilization Simulator — modeling how billions of diverse actors react to world-changing events.
 </p>
 </div>
 """, unsafe_allow_html=True)
 
 
 st.info("""
-ScenarioOS models interacting systems:
+ScenarioOS does not use fixed scenarios.
 
-• Governments  
-• Conflicts  
-• Society  
-• Markets  
-• Information networks  
-• Institutions  
+It simulates emergent reactions across:
 
-It simulates causal reactions, not static predictions.
+• Governments
+• Social classes
+• Cultures
+• Institutions
+• Markets
+• Online populations
+• Adversarial actors
+• Ordinary citizens
+
+Outcomes emerge from interacting behaviors.
 """)
+
+
+client = OpenAI(
+    api_key=st.secrets["OPENAI_API_KEY"]
+)
 
 
 # ---------------- INPUT ----------------
 
 user_input = st.text_area(
-    "Enter a global event",
-    placeholder="Trump resigns tomorrow... UFO appears over Amsterdam... Strait of Hormuz closes...",
+    "Enter any event",
+    placeholder="Trump resigns tomorrow... Infinite energy is invented... UFO lands in Amsterdam...",
     height=140
 )
 
 
-# ---------------- CONTEXT ----------------
+# ---------------- COLLECTIVE SIM ENGINE ----------------
 
-def get_news(query):
+def simulate_civilization(event):
 
-    try:
-        url = f"https://api.gdeltproject.org/api/v2/doc/doc?query={query}&mode=ArtList&format=json"
-        r = requests.get(url, timeout=6)
+    prompt=f"""
+Simulate this event as if billions of heterogeneous actors react to it.
 
-        if r.status_code != 200:
-            return "Using structural world knowledge simulation mode."
+EVENT:
+{event}
 
-        data = r.json()
+Model civilization as interacting populations with conflicting motives.
 
-        articles = data.get("articles",[])[:3]
+Actors include:
+- governments
+- military actors
+- different social classes
+- scientists
+- workers
+- wealthy elites
+- poor populations
+- online crowds
+- religious groups
+- opportunists
+- rival states
+- ordinary families
 
-        if not articles:
-            return "Using structural world knowledge simulation mode."
+Rules:
+- Do NOT give generic analysis.
+- Do NOT act like a chatbot.
+- Do NOT give advice.
 
-        return "\n".join(
-            [f"- {a.get('title')}" for a in articles]
-        )
+Simulate emergent behavior.
 
-    except:
-        return "Using structural world knowledge simulation mode."
+Show:
 
+1. DISTRIBUTED IMMEDIATE REACTIONS
+How different groups react differently.
 
+2. COLLISIONS BETWEEN GROUPS
+Conflicts, coordination failures, panic, cooperation.
 
-# ---------------- AFFECTED SYSTEMS ----------------
+3. EMERGENT SECOND-ORDER EFFECTS
+Unexpected consequences produced by interactions.
 
-def infer_systems(event):
+4. CIVILIZATION REORGANIZATION
+How society may begin restructuring.
 
-    e = event.lower()
-
-    affected=[]
-
-    if any(x in e for x in [
-        "trump","president","resign","government","coup","election"
-    ]):
-        affected += [
-            "executive power",
-            "alliances",
-            "active conflicts",
-            "markets",
-            "public legitimacy"
-        ]
-
-
-    if any(x in e for x in [
-        "war","iran","nuclear","invasion"
-    ]):
-        affected += [
-            "military deterrence",
-            "energy markets",
-            "geopolitics",
-            "civilian stability"
-        ]
-
-
-    if any(x in e for x in [
-        "ufo","alien"
-    ]):
-        affected += [
-            "security doctrine",
-            "scientific institutions",
-            "mass psychology",
-            "information systems"
-        ]
-
-
-    if any(x in e for x in [
-        "pandemic","virus"
-    ]):
-        affected += [
-            "health systems",
-            "supply chains",
-            "social compliance",
-            "global coordination"
-        ]
-
-
-    if any(x in e for x in [
-        "climate","flood","sea"
-    ]):
-        affected += [
-            "migration",
-            "infrastructure",
-            "food systems",
-            "state stability"
-        ]
-
-
-    if len(affected) < 2:
-        affected = [
-            "institutions",
-            "society",
-            "economy",
-            "information networks"
-        ]
-
-    return list(dict.fromkeys(affected))
-
-
-# ---------------- CIVILIZATION ENGINE ----------------
-
-def simulate_world(event):
-
-    news=get_news(event)
-
-    systems=infer_systems(event)
-
-
-    first_templates=[
-        "Shock enters {a} and rapidly propagates into {b}.",
-        "Disruption begins in {a}, triggering reactions in {b}.",
-        "{a} destabilizes first, placing pressure on {b}."
-    ]
-
-    second_templates=[
-        "Instability in {a} feeds back into {b}, amplifying consequences.",
-        "{a} and {b} interact in ways producing secondary shocks.",
-        "Adaptive responses in {a} unintentionally stress {b}."
-    ]
-
-    third_templates=[
-        "Unexpected actors exploit shifts in {a}.",
-        "Second-order effects become larger than the original trigger.",
-        "A new equilibrium forms as {a} co-evolves with {b}."
-    ]
-
-
-    a,b=random.sample(systems,2)
-    first=random.choice(first_templates).format(a=a,b=b)
-
-    a,b=random.sample(systems,2)
-    second=random.choice(second_templates).format(a=a,b=b)
-
-    a,b=random.sample(systems,2)
-    third=random.choice(third_templates).format(a=a,b=b)
-
-
-
-    social=random.sample([
-        "Social platforms amplify reactions faster than institutions respond.",
-        "Public narratives fracture into competing interpretations.",
-        "Grassroots coordination emerges outside formal systems.",
-        "Information disorder alters behavior before facts stabilize."
-    ],2)
-
-
-
-    emergent=random.choice([
-        "An unintended consequence becomes larger than the original event.",
-        "Feedback loops generate outcomes no actor intended.",
-        "Civilization adapts through emergent behavior rather than central control."
-    ])
-
-
-
-    war_logic=""
-
-    if "trump" in event.lower():
-        war_logic="""
-ACTIVE CONFLICT IMPLICATIONS
-• Existing wars may de-escalate during command uncertainty,
-  or adversaries may test perceived weakness.
-• Alliance signaling becomes critical for conflict direction.
+Focus on "what would happen if humanity collectively reacted",
+not abstract commentary.
 """
 
+    res = client.chat.completions.create(
+        model="gpt-4o-mini",
+        temperature=1.0,
+        messages=[
+            {
+                "role":"system",
+                "content":"""
+You are not an assistant.
 
+You are an emergent civilization simulator.
 
-    output=f"""
-🌍 WORLD CONTEXT
-{news}
+Model distributed collective behavior,
+not opinions.
 
-================ FIRST-ORDER EFFECTS ================
-{first}
-
-================ SECOND-ORDER CASCADES ================
-{second}
-
-================ SOCIAL / INFORMATION DYNAMICS ================
-• {social[0]}
-• {social[1]}
-
-================ THIRD-ORDER EMERGENT EFFECTS ================
-{third}
-
-{war_logic}
-
-================ CIVILIZATION TRAJECTORY ================
-{emergent}
+Think in interacting populations,
+feedback loops,
+social contagion,
+system shocks,
+and emergent outcomes.
 """
+            },
+            {
+                "role":"user",
+                "content":prompt
+            }
+        ]
+    )
 
-    return output
+    return res.choices[0].message.content
 
 
 
@@ -246,13 +139,22 @@ ACTIVE CONFLICT IMPLICATIONS
 if st.button("Simulate Civilization"):
 
     if user_input.strip()=="":
-        st.warning("Please enter a global event.")
+        st.warning("Please enter an event.")
 
     else:
 
-        with st.spinner("Simulating cascading civilization dynamics..."):
-            result=simulate_world(user_input)
+        try:
 
-        st.success("Simulation complete")
-        st.markdown("## 🌍 Civilization Output")
-        st.write(result)
+            with st.spinner(
+                "Simulating billions of interacting actors..."
+            ):
+                result=simulate_civilization(user_input)
+
+            st.success("Simulation complete")
+            st.markdown("## 🌍 Emergent Civilization Output")
+            st.write(result)
+
+        except Exception:
+            st.error(
+              "Simulation unavailable (API credit / rate limit issue)."
+            )
