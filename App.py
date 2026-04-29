@@ -1,14 +1,87 @@
-# ---------------- EVENT PARSER ----------------
+import streamlit as st
+import requests
+import random
+
+
+# ---------------- PAGE ----------------
+
+st.set_page_config(
+    page_title="ScenarioOS",
+    page_icon="🧠",
+    layout="centered"
+)
+
+st.markdown("""
+<div style="text-align:center;padding:10px;">
+<h1>🧠 ScenarioOS</h1>
+<p style="color:gray;font-size:16px;">
+Civilization Reaction Engine — simulating cascading global responses to major events.
+</p>
+</div>
+""", unsafe_allow_html=True)
+
+
+st.info("""
+ScenarioOS models interacting systems:
+
+• Governments  
+• Conflicts  
+• Society  
+• Markets  
+• Information networks  
+• Institutions  
+
+It simulates causal reactions, not static predictions.
+""")
+
+
+# ---------------- INPUT ----------------
+
+user_input = st.text_area(
+    "Enter a global event",
+    placeholder="Trump resigns tomorrow... UFO appears over Amsterdam... Strait of Hormuz closes...",
+    height=140
+)
+
+
+# ---------------- CONTEXT ----------------
+
+def get_news(query):
+
+    try:
+        url = f"https://api.gdeltproject.org/api/v2/doc/doc?query={query}&mode=ArtList&format=json"
+        r = requests.get(url, timeout=6)
+
+        if r.status_code != 200:
+            return "Using structural world knowledge simulation mode."
+
+        data = r.json()
+
+        articles = data.get("articles",[])[:3]
+
+        if not articles:
+            return "Using structural world knowledge simulation mode."
+
+        return "\n".join(
+            [f"- {a.get('title')}" for a in articles]
+        )
+
+    except:
+        return "Using structural world knowledge simulation mode."
+
+
+
+# ---------------- AFFECTED SYSTEMS ----------------
 
 def infer_systems(event):
 
-    e=event.lower()
+    e = event.lower()
 
     affected=[]
 
-    # non categorie rigide, sistemi perturbati
-
-    if any(x in e for x in ["trump","president","government","resign","coup","election"]):
+    if any(x in e for x in [
+        "trump","president","resign","government","coup","election"
+    ]):
         affected += [
             "executive power",
             "alliances",
@@ -17,7 +90,10 @@ def infer_systems(event):
             "public legitimacy"
         ]
 
-    if any(x in e for x in ["war","iran","nuclear","invasion"]):
+
+    if any(x in e for x in [
+        "war","iran","nuclear","invasion"
+    ]):
         affected += [
             "military deterrence",
             "energy markets",
@@ -25,15 +101,21 @@ def infer_systems(event):
             "civilian stability"
         ]
 
-    if any(x in e for x in ["ufo","alien"]):
+
+    if any(x in e for x in [
+        "ufo","alien"
+    ]):
         affected += [
-            "scientific institutions",
             "security doctrine",
+            "scientific institutions",
             "mass psychology",
             "information systems"
         ]
 
-    if any(x in e for x in ["pandemic","virus"]):
+
+    if any(x in e for x in [
+        "pandemic","virus"
+    ]):
         affected += [
             "health systems",
             "supply chains",
@@ -41,15 +123,19 @@ def infer_systems(event):
             "global coordination"
         ]
 
-    if any(x in e for x in ["climate","flood","sea"]):
+
+    if any(x in e for x in [
+        "climate","flood","sea"
+    ]):
         affected += [
-            "infrastructure",
             "migration",
+            "infrastructure",
             "food systems",
             "state stability"
         ]
 
-    if not affected:
+
+    if len(affected) < 2:
         affected = [
             "institutions",
             "society",
@@ -60,7 +146,7 @@ def infer_systems(event):
     return list(dict.fromkeys(affected))
 
 
-# ---------------- CASCADE ENGINE ----------------
+# ---------------- CIVILIZATION ENGINE ----------------
 
 def simulate_world(event):
 
@@ -68,65 +154,68 @@ def simulate_world(event):
 
     systems=infer_systems(event)
 
-    first_order_templates=[
-      "Immediate stress appears in {a} while {b} begins adjusting.",
-      "{a} is disrupted first, triggering reactions in {b}.",
-      "Shock enters {a} and rapidly propagates into {b}."
+
+    first_templates=[
+        "Shock enters {a} and rapidly propagates into {b}.",
+        "Disruption begins in {a}, triggering reactions in {b}.",
+        "{a} destabilizes first, placing pressure on {b}."
     ]
 
-    second_order_templates=[
-      "Instability in {a} feeds back into {b}, amplifying secondary consequences.",
-      "{a} interacts with {b}, producing nonlinear side effects.",
-      "Adaptive responses in {a} unintentionally pressure {b}."
+    second_templates=[
+        "Instability in {a} feeds back into {b}, amplifying consequences.",
+        "{a} and {b} interact in ways producing secondary shocks.",
+        "Adaptive responses in {a} unintentionally stress {b}."
     ]
 
-    third_order_templates=[
-      "Unexpected actors exploit shifts in {a}, changing outcomes.",
-      "Second-order effects become larger than the original trigger.",
-      "A new equilibrium emerges as {a} and {b} co-evolve."
+    third_templates=[
+        "Unexpected actors exploit shifts in {a}.",
+        "Second-order effects become larger than the original trigger.",
+        "A new equilibrium forms as {a} co-evolves with {b}."
     ]
 
-    # pick systems dynamically
-    a,b=random.sample(systems,2)
-
-    first=random.choice(first_order_templates).format(a=a,b=b)
 
     a,b=random.sample(systems,2)
-    second=random.choice(second_order_templates).format(a=a,b=b)
+    first=random.choice(first_templates).format(a=a,b=b)
 
     a,b=random.sample(systems,2)
-    third=random.choice(third_order_templates).format(a=a,b=b)
+    second=random.choice(second_templates).format(a=a,b=b)
+
+    a,b=random.sample(systems,2)
+    third=random.choice(third_templates).format(a=a,b=b)
+
+
+
+    social=random.sample([
+        "Social platforms amplify reactions faster than institutions respond.",
+        "Public narratives fracture into competing interpretations.",
+        "Grassroots coordination emerges outside formal systems.",
+        "Information disorder alters behavior before facts stabilize."
+    ],2)
+
+
+
+    emergent=random.choice([
+        "An unintended consequence becomes larger than the original event.",
+        "Feedback loops generate outcomes no actor intended.",
+        "Civilization adapts through emergent behavior rather than central control."
+    ])
+
 
 
     war_logic=""
 
-    # dynamic reasoning layer (esempio che volevi)
     if "trump" in event.lower():
         war_logic="""
 ACTIVE CONFLICT IMPLICATIONS
-• Ongoing wars may temporarily de-escalate during command uncertainty,
+• Existing wars may de-escalate during command uncertainty,
   or adversaries may test perceived weakness.
-• Conflict trajectories depend on alliance signaling during succession.
+• Alliance signaling becomes critical for conflict direction.
 """
 
 
-    social_dynamics=random.sample([
-       "Social platforms accelerate polarization faster than institutions respond.",
-       "Public narratives split into competing interpretations of reality.",
-       "Grassroots coordination emerges outside formal institutions.",
-       "Information disorder alters behavior before facts stabilize."
-    ],2)
 
-
-    emergent=random.choice([
-      "An unintended consequence becomes historically more important than the event itself.",
-      "System feedback loops create outcomes no actor originally intended.",
-      "Civilization adapts through emergent behavior rather than central control."
-    ])
-
-
-    result=f"""
-🌍 CURRENT WORLD CONTEXT
+    output=f"""
+🌍 WORLD CONTEXT
 {news}
 
 ================ FIRST-ORDER EFFECTS ================
@@ -135,9 +224,9 @@ ACTIVE CONFLICT IMPLICATIONS
 ================ SECOND-ORDER CASCADES ================
 {second}
 
-================ SOCIAL/INFORMATION DYNAMICS ================
-• {social_dynamics[0]}
-• {social_dynamics[1]}
+================ SOCIAL / INFORMATION DYNAMICS ================
+• {social[0]}
+• {social[1]}
 
 ================ THIRD-ORDER EMERGENT EFFECTS ================
 {third}
@@ -148,4 +237,22 @@ ACTIVE CONFLICT IMPLICATIONS
 {emergent}
 """
 
-    return result
+    return output
+
+
+
+# ---------------- BUTTON ----------------
+
+if st.button("Simulate Civilization"):
+
+    if user_input.strip()=="":
+        st.warning("Please enter a global event.")
+
+    else:
+
+        with st.spinner("Simulating cascading civilization dynamics..."):
+            result=simulate_world(user_input)
+
+        st.success("Simulation complete")
+        st.markdown("## 🌍 Civilization Output")
+        st.write(result)
