@@ -31,7 +31,7 @@ It is a scenario simulation engine powered by multiple reasoning agents:
 It generates structured scenario forecasts instead of conversational answers.
 """)
 
-# --- OPENAI CLIENT (CORRETTO PER STREAMLIT) ---
+# --- OPENAI CLIENT ---
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # --- INPUT ---
@@ -41,26 +41,19 @@ user_input = st.text_area(
     height=120
 )
 
-# --- SIMULATION FUNCTION ---
+# --- FUNCTION ---
 def simulate(prompt):
     res = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
             {
                 "role": "system",
-                "content": """
-You are a multi-agent scenario simulation system.
-
-You must generate 3 structured outputs:
-
-1. Optimistic Scenario
-2. Realistic Scenario
-3. Risk Scenario
-
-Do NOT behave like a chatbot. Do NOT give advice. Only simulate outcomes.
-"""
+                "content": "You are a multi-agent scenario simulation system. Generate 3 outputs: Optimistic, Realistic, Risk."
             },
-            {"role": "user", "content": prompt}
+            {
+                "role": "user",
+                "content": prompt
+            }
         ]
     )
     return res.choices[0].message.content
@@ -74,14 +67,5 @@ if st.button("Simulate"):
             result = simulate(user_input)
 
         st.success("Simulation complete")
-
         st.markdown("## 📊 Scenario Output")
-        st.write(result)            {"role": "system", "content": "You simulate 3 scenarios: optimistic, realistic, risky."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    return res.choices[0].message.content
-
-if st.button("Simula") and user_input:
-    result = simulate(user_input)
-    st.write(result)
+        st.write(result)
