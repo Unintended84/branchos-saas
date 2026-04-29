@@ -1,214 +1,151 @@
-import streamlit as st
-import requests
-import random
+# ---------------- EVENT PARSER ----------------
 
-# ---------------- PAGE ----------------
+def infer_systems(event):
 
-st.set_page_config(
-    page_title="ScenarioOS",
-    page_icon="🧠",
-    layout="centered"
-)
+    e=event.lower()
 
-st.markdown("""
-<div style="text-align:center;padding:10px;">
-<h1>🧠 ScenarioOS</h1>
-<p style="color:gray;font-size:16px;">
-Civilization Reaction Engine — simulating how global systems respond to major events.
-</p>
-</div>
-""", unsafe_allow_html=True)
+    affected=[]
 
-st.info("""
-ScenarioOS models real-world system behavior:
+    # non categorie rigide, sistemi perturbati
 
-• Governments & institutions  
-• Society & population behavior  
-• Media & information systems  
-• Science & technology response  
-• Geopolitical coordination  
-• Systemic instability dynamics  
+    if any(x in e for x in ["trump","president","government","resign","coup","election"]):
+        affected += [
+            "executive power",
+            "alliances",
+            "active conflicts",
+            "markets",
+            "public legitimacy"
+        ]
 
-It simulates reactions, not opinions.
-""")
+    if any(x in e for x in ["war","iran","nuclear","invasion"]):
+        affected += [
+            "military deterrence",
+            "energy markets",
+            "geopolitics",
+            "civilian stability"
+        ]
 
-# ---------------- INPUT ----------------
+    if any(x in e for x in ["ufo","alien"]):
+        affected += [
+            "scientific institutions",
+            "security doctrine",
+            "mass psychology",
+            "information systems"
+        ]
 
-user_input = st.text_area(
-    "Enter a global event",
-    placeholder="UFO appears over Amsterdam... Pandemic starts in Italy... Climate collapse scenario...",
-    height=140
-)
+    if any(x in e for x in ["pandemic","virus"]):
+        affected += [
+            "health systems",
+            "supply chains",
+            "social compliance",
+            "global coordination"
+        ]
 
-# ---------------- LIVE CONTEXT ----------------
+    if any(x in e for x in ["climate","flood","sea"]):
+        affected += [
+            "infrastructure",
+            "migration",
+            "food systems",
+            "state stability"
+        ]
 
-def get_news(query):
-    try:
-        url = f"https://api.gdeltproject.org/api/v2/doc/doc?query={query}&mode=ArtList&format=json"
-        r = requests.get(url, timeout=8)
+    if not affected:
+        affected = [
+            "institutions",
+            "society",
+            "economy",
+            "information networks"
+        ]
 
-        if r.status_code != 200:
-            return "No live contextual data available."
-
-        data = r.json()
-        articles = data.get("articles", [])[:4]
-
-        if not articles:
-            return "No relevant global signals found."
-
-        return "\n".join([f"- {a.get('title')}" for a in articles])
-
-    except:
-        return "Context system unavailable."
+    return list(dict.fromkeys(affected))
 
 
-# ---------------- EVENT CLASSIFIER ----------------
-
-def classify_event(event):
-
-    e = event.lower()
-
-    if "ufo" in e or "alien" in e:
-        return "ufo"
-
-    if "pandemic" in e or "virus" in e:
-        return "pandemic"
-
-    if "climate" in e or "flood" in e or "sea" in e:
-        return "climate"
-
-    if "cancer" in e or "cure" in e:
-        return "science"
-
-    return "generic"
-
-
-# ---------------- CIVILIZATION ENGINE ----------------
+# ---------------- CASCADE ENGINE ----------------
 
 def simulate_world(event):
 
-    news = get_news(event)
-    kind = classify_event(event)
+    news=get_news(event)
 
-    # --- CORE SYSTEM RESPONSE (NON TEMPLATE, MORE DYNAMIC) ---
+    systems=infer_systems(event)
 
-    responses = {
+    first_order_templates=[
+      "Immediate stress appears in {a} while {b} begins adjusting.",
+      "{a} is disrupted first, triggering reactions in {b}.",
+      "Shock enters {a} and rapidly propagates into {b}."
+    ]
 
-        "ufo": {
-            "institutions": [
-                "NATO and national governments activate emergency coordination channels.",
-                "Conflicting official statements emerge between states.",
-                "Scientific institutions request controlled access to data."
-            ],
-            "society": [
-                "Global social media explodes with contradictory footage.",
-                "Mass polarization between believers and skeptics forms rapidly.",
-                "New online cult-like communities emerge within hours."
-            ],
-            "media": [
-                "Information ecosystems fragment into competing narratives.",
-                "Misinformation spreads faster than official clarification.",
-                "Traditional media lose monopoly on interpretation."
-            ],
-            "emergent": [
-                "A new global belief structure begins forming outside institutions.",
-                "Non-state actors gain influence over interpretation of events.",
-                "Public trust in centralized narratives significantly weakens."
-            ]
-        },
+    second_order_templates=[
+      "Instability in {a} feeds back into {b}, amplifying secondary consequences.",
+      "{a} interacts with {b}, producing nonlinear side effects.",
+      "Adaptive responses in {a} unintentionally pressure {b}."
+    ]
 
-        "pandemic": {
-            "institutions": [
-                "WHO coordination frameworks are activated.",
-                "National responses diverge in speed and strictness.",
-                "Healthcare systems enter emergency load conditions."
-            ],
-            "society": [
-                "Behavioral compliance varies dramatically by region.",
-                "Panic buying and mobility reduction occur globally.",
-                "Trust in institutions becomes a key variable."
-            ],
-            "media": [
-                "Information uncertainty drives anxiety amplification.",
-                "Social platforms accelerate behavioral contagion.",
-                "Scientific updates compete with speculation."
-            ],
-            "emergent": [
-                "Parallel informal survival systems appear in some regions.",
-                "Long-term institutional trust shifts permanently.",
-                "New norms around health and mobility emerge globally."
-            ]
-        },
+    third_order_templates=[
+      "Unexpected actors exploit shifts in {a}, changing outcomes.",
+      "Second-order effects become larger than the original trigger.",
+      "A new equilibrium emerges as {a} and {b} co-evolve."
+    ]
 
-        "generic": {
-            "institutions": [
-                "Government crisis protocols are activated.",
-                "International coordination begins unevenly.",
-                "Policy divergence appears across regions."
-            ],
-            "society": [
-                "Public perception shifts based on uncertainty levels.",
-                "Local adaptation strategies emerge.",
-                "Social stability varies by region."
-            ],
-            "media": [
-                "Narrative competition increases across platforms.",
-                "Information spreads faster than verification.",
-                "Attention systems amplify uncertainty."
-            ],
-            "emergent": [
-                "Unexpected second-order effects appear over time.",
-                "Institutional adaptation lags behind social behavior.",
-                "System equilibrium shifts unpredictably."
-            ]
-        }
-    }
+    # pick systems dynamically
+    a,b=random.sample(systems,2)
 
-    s = responses[kind]
+    first=random.choice(first_order_templates).format(a=a,b=b)
 
-    news_context = f"""
-GLOBAL CONTEXT SIGNALS:
-{news}
+    a,b=random.sample(systems,2)
+    second=random.choice(second_order_templates).format(a=a,b=b)
+
+    a,b=random.sample(systems,2)
+    third=random.choice(third_order_templates).format(a=a,b=b)
+
+
+    war_logic=""
+
+    # dynamic reasoning layer (esempio che volevi)
+    if "trump" in event.lower():
+        war_logic="""
+ACTIVE CONFLICT IMPLICATIONS
+• Ongoing wars may temporarily de-escalate during command uncertainty,
+  or adversaries may test perceived weakness.
+• Conflict trajectories depend on alliance signaling during succession.
 """
 
-    result = f"""
-🌍 WORLD CONTEXT
-{news_context}
 
-================ INSTITUTIONS RESPONSE ================
-- {random.choice(s['institutions'])}
-- {random.choice(s['institutions'])}
+    social_dynamics=random.sample([
+       "Social platforms accelerate polarization faster than institutions respond.",
+       "Public narratives split into competing interpretations of reality.",
+       "Grassroots coordination emerges outside formal institutions.",
+       "Information disorder alters behavior before facts stabilize."
+    ],2)
 
-================ SOCIETAL RESPONSE ================
-- {random.choice(s['society'])}
-- {random.choice(s['society'])}
 
-================ MEDIA & INFORMATION ================
-- {random.choice(s['media'])}
+    emergent=random.choice([
+      "An unintended consequence becomes historically more important than the event itself.",
+      "System feedback loops create outcomes no actor originally intended.",
+      "Civilization adapts through emergent behavior rather than central control."
+    ])
 
-================ EMERGENT EFFECTS ================
-- {random.choice(s['emergent'])}
-- {random.choice(s['emergent'])}
 
-================ SYSTEM TRAJECTORY ================
-The event triggers cascading interactions across institutions, society, and information systems, producing non-linear global adaptation patterns.
+    result=f"""
+🌍 CURRENT WORLD CONTEXT
+{news}
+
+================ FIRST-ORDER EFFECTS ================
+{first}
+
+================ SECOND-ORDER CASCADES ================
+{second}
+
+================ SOCIAL/INFORMATION DYNAMICS ================
+• {social_dynamics[0]}
+• {social_dynamics[1]}
+
+================ THIRD-ORDER EMERGENT EFFECTS ================
+{third}
+
+{war_logic}
+
+================ CIVILIZATION TRAJECTORY ================
+{emergent}
 """
 
     return result
-
-
-# ---------------- BUTTON ----------------
-
-if st.button("Simulate Civilization"):
-
-    if user_input.strip() == "":
-        st.warning("Please enter a global event.")
-
-    else:
-
-        with st.spinner("Simulating civilization response..."):
-            result = simulate_world(user_input)
-
-        st.success("Simulation complete")
-        st.markdown("## 🌍 Civilization Reaction Output")
-        st.write(result)
