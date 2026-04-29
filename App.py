@@ -1,8 +1,9 @@
 import streamlit as st
-from openai import OpenAI
 import requests
+import random
 
 # ---------------- PAGE ----------------
+
 st.set_page_config(
     page_title="ScenarioOS",
     page_icon="🧠",
@@ -29,13 +30,9 @@ ScenarioOS simulates interacting global systems:
 • Environment  
 • Geopolitics  
 
-It does not answer questions like a chatbot.
-It simulates world evolution.
+Live news is used as real-world context.
+Simulation currently runs in prototype mode.
 """)
-
-client = OpenAI(
-    api_key=st.secrets["OPENAI_API_KEY"]
-)
 
 # ---------------- INPUT ----------------
 
@@ -50,7 +47,7 @@ user_input = st.text_area(
 def get_news(query):
     try:
         url=f"https://api.gdeltproject.org/api/v2/doc/doc?query={query}&mode=ArtList&format=json"
-        r=requests.get(url,timeout=8)
+        r=requests.get(url, timeout=8)
 
         if r.status_code!=200:
             return "No live news available."
@@ -69,58 +66,106 @@ def get_news(query):
         return "News fetch unavailable."
 
 
-# ---------------- ONE-CALL CIVILIZATION SIM ----------------
+# ---------------- EVENT CLASSIFIER ----------------
+
+def classify_event(event):
+
+    e=event.lower()
+
+    if "pandemic" in e or "virus" in e:
+        return "pandemic"
+
+    if "ufo" in e or "alien" in e:
+        return "ufo"
+
+    if "cancer" in e or "cure" in e:
+        return "science"
+
+    if "sea" in e or "climate" in e or "flood" in e:
+        return "climate"
+
+    return "generic"
+
+
+# ---------------- CIVILIZATION SIM ----------------
 
 def simulate_world(event):
 
     news=get_news(event)
 
-    prompt=f"""
-LIVE NEWS CONTEXT:
+    kind=classify_event(event)
+
+    scenarios={
+
+        "pandemic":{
+            "day":"Emergency health responses spread globally.",
+            "month":"Supply chains strain while governments diverge in strategy.",
+            "year":"Public institutions and social behavior evolve permanently."
+        },
+
+        "ufo":{
+            "day":"Global governments enter crisis coordination mode.",
+            "month":"Scientific, military and social responses begin diverging.",
+            "year":"Human civilization reorganizes around first-contact implications."
+        },
+
+        "science":{
+            "day":"Medical systems react with disbelief and urgency.",
+            "month":"Global health priorities shift rapidly.",
+            "year":"Society restructures around longer life and lower disease burden."
+        },
+
+        "climate":{
+            "day":"Coastal risk alerts trigger emergency planning.",
+            "month":"Migration and infrastructure adaptation accelerate.",
+            "year":"Political and environmental systems are restructured."
+        },
+
+        "generic":{
+            "day":"Governments issue immediate responses.",
+            "month":"Systems adapt under pressure.",
+            "year":"The event reshapes long-term civilization dynamics."
+        }
+
+    }
+
+    s=scenarios[kind]
+
+    system_states=[
+        "Health stability: adaptive stress",
+        "Society: elevated uncertainty",
+        "Technology: accelerated innovation",
+        "Environment: systemic ripple effects",
+        "Geopolitics: strategic instability",
+        "Institutions: resilience under pressure"
+    ]
+
+    random.shuffle(system_states)
+
+    result=f"""
+🌍 LIVE WORLD CONTEXT
+
 {news}
 
-EVENT:
-{event}
+================ DAY 1 ================
+{s['day']}
 
-Simulate civilization response across:
+================ MONTH 1 ==============
+{s['month']}
 
-STEP 1 — Immediate effects (Day 1)
-STEP 2 — Medium-term adaptation (Month 1)
-STEP 3 — Long-term world evolution (Year 1)
+================ YEAR 1 ===============
+{s['year']}
 
-Consider:
-- health
-- economy
-- society
-- technology
-- environment
-- geopolitics
+================ SYSTEM DYNAMICS ===============
+- {system_states[0]}
+- {system_states[1]}
+- {system_states[2]}
 
-Show cascading interactions between systems.
+Emergent civilization trajectory:
+The event generates second-order effects beyond the initial shock and shifts long-term global equilibrium.
 """
 
-    res = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-              "role":"system",
-              "content":"""
-You are ScenarioOS Civilization Engine.
-
-Simulate emergent world dynamics.
-Do not act like a chatbot.
-Do not give generic advice.
-Model civilization evolution.
-"""
-            },
-            {
-              "role":"user",
-              "content":prompt
-            }
-        ]
-    )
-
-    return res.choices[0].message.content
+    return result
 
 
 # ---------------- BUTTON ----------------
@@ -132,15 +177,9 @@ if st.button("Simulate Civilization"):
 
     else:
 
-        try:
-            with st.spinner("Simulating world evolution..."):
-                result=simulate_world(user_input)
+        with st.spinner("Simulating world evolution..."):
+            result=simulate_world(user_input)
 
-            st.success("Simulation complete")
-            st.markdown("## 🌍 Civilization Output")
-            st.write(result)
-
-        except Exception:
-            st.error(
-                "Simulation unavailable (API rate limit or no billing credit)."
-            )
+        st.success("Simulation complete")
+        st.markdown("## 🌍 Civilization Output")
+        st.write(result)
