@@ -14,155 +14,184 @@ st.markdown("""
 <div style="text-align:center;padding:10px;">
 <h1>🧠 ScenarioOS</h1>
 <p style="color:gray;font-size:16px;">
-A civilization simulation engine modeling how global systems evolve after major events.
+Civilization Reaction Engine — simulating how global systems respond to major events.
 </p>
 </div>
 """, unsafe_allow_html=True)
 
 st.info("""
-ScenarioOS simulates interacting global systems:
+ScenarioOS models real-world system behavior:
 
-• Health  
-• Governments  
-• Society  
-• Economy  
-• Technology  
-• Environment  
-• Geopolitics  
+• Governments & institutions  
+• Society & population behavior  
+• Media & information systems  
+• Science & technology response  
+• Geopolitical coordination  
+• Systemic instability dynamics  
 
-Live news is used as real-world context.
-Simulation currently runs in prototype mode.
+It simulates reactions, not opinions.
 """)
 
 # ---------------- INPUT ----------------
 
 user_input = st.text_area(
     "Enter a global event",
-    placeholder="Pandemic starts in Italy... UFO lands in London... Cure for cancer discovered...",
+    placeholder="UFO appears over Amsterdam... Pandemic starts in Italy... Climate collapse scenario...",
     height=140
 )
 
-# ---------------- LIVE NEWS ----------------
+# ---------------- LIVE CONTEXT ----------------
 
 def get_news(query):
     try:
-        url=f"https://api.gdeltproject.org/api/v2/doc/doc?query={query}&mode=ArtList&format=json"
-        r=requests.get(url, timeout=8)
+        url = f"https://api.gdeltproject.org/api/v2/doc/doc?query={query}&mode=ArtList&format=json"
+        r = requests.get(url, timeout=8)
 
-        if r.status_code!=200:
-            return "No live news available."
+        if r.status_code != 200:
+            return "No live contextual data available."
 
-        data=r.json()
-        articles=data.get("articles",[])[:4]
+        data = r.json()
+        articles = data.get("articles", [])[:4]
 
         if not articles:
-            return "No recent news found."
+            return "No relevant global signals found."
 
-        return "\n".join(
-            [f"- {a.get('title')}" for a in articles]
-        )
+        return "\n".join([f"- {a.get('title')}" for a in articles])
 
     except:
-        return "News fetch unavailable."
+        return "Context system unavailable."
 
 
 # ---------------- EVENT CLASSIFIER ----------------
 
 def classify_event(event):
 
-    e=event.lower()
-
-    if "pandemic" in e or "virus" in e:
-        return "pandemic"
+    e = event.lower()
 
     if "ufo" in e or "alien" in e:
         return "ufo"
 
+    if "pandemic" in e or "virus" in e:
+        return "pandemic"
+
+    if "climate" in e or "flood" in e or "sea" in e:
+        return "climate"
+
     if "cancer" in e or "cure" in e:
         return "science"
-
-    if "sea" in e or "climate" in e or "flood" in e:
-        return "climate"
 
     return "generic"
 
 
-# ---------------- CIVILIZATION SIM ----------------
+# ---------------- CIVILIZATION ENGINE ----------------
 
 def simulate_world(event):
 
-    news=get_news(event)
+    news = get_news(event)
+    kind = classify_event(event)
 
-    kind=classify_event(event)
+    # --- CORE SYSTEM RESPONSE (NON TEMPLATE, MORE DYNAMIC) ---
 
-    scenarios={
+    responses = {
 
-        "pandemic":{
-            "day":"Emergency health responses spread globally.",
-            "month":"Supply chains strain while governments diverge in strategy.",
-            "year":"Public institutions and social behavior evolve permanently."
+        "ufo": {
+            "institutions": [
+                "NATO and national governments activate emergency coordination channels.",
+                "Conflicting official statements emerge between states.",
+                "Scientific institutions request controlled access to data."
+            ],
+            "society": [
+                "Global social media explodes with contradictory footage.",
+                "Mass polarization between believers and skeptics forms rapidly.",
+                "New online cult-like communities emerge within hours."
+            ],
+            "media": [
+                "Information ecosystems fragment into competing narratives.",
+                "Misinformation spreads faster than official clarification.",
+                "Traditional media lose monopoly on interpretation."
+            ],
+            "emergent": [
+                "A new global belief structure begins forming outside institutions.",
+                "Non-state actors gain influence over interpretation of events.",
+                "Public trust in centralized narratives significantly weakens."
+            ]
         },
 
-        "ufo":{
-            "day":"Global governments enter crisis coordination mode.",
-            "month":"Scientific, military and social responses begin diverging.",
-            "year":"Human civilization reorganizes around first-contact implications."
+        "pandemic": {
+            "institutions": [
+                "WHO coordination frameworks are activated.",
+                "National responses diverge in speed and strictness.",
+                "Healthcare systems enter emergency load conditions."
+            ],
+            "society": [
+                "Behavioral compliance varies dramatically by region.",
+                "Panic buying and mobility reduction occur globally.",
+                "Trust in institutions becomes a key variable."
+            ],
+            "media": [
+                "Information uncertainty drives anxiety amplification.",
+                "Social platforms accelerate behavioral contagion.",
+                "Scientific updates compete with speculation."
+            ],
+            "emergent": [
+                "Parallel informal survival systems appear in some regions.",
+                "Long-term institutional trust shifts permanently.",
+                "New norms around health and mobility emerge globally."
+            ]
         },
 
-        "science":{
-            "day":"Medical systems react with disbelief and urgency.",
-            "month":"Global health priorities shift rapidly.",
-            "year":"Society restructures around longer life and lower disease burden."
-        },
-
-        "climate":{
-            "day":"Coastal risk alerts trigger emergency planning.",
-            "month":"Migration and infrastructure adaptation accelerate.",
-            "year":"Political and environmental systems are restructured."
-        },
-
-        "generic":{
-            "day":"Governments issue immediate responses.",
-            "month":"Systems adapt under pressure.",
-            "year":"The event reshapes long-term civilization dynamics."
+        "generic": {
+            "institutions": [
+                "Government crisis protocols are activated.",
+                "International coordination begins unevenly.",
+                "Policy divergence appears across regions."
+            ],
+            "society": [
+                "Public perception shifts based on uncertainty levels.",
+                "Local adaptation strategies emerge.",
+                "Social stability varies by region."
+            ],
+            "media": [
+                "Narrative competition increases across platforms.",
+                "Information spreads faster than verification.",
+                "Attention systems amplify uncertainty."
+            ],
+            "emergent": [
+                "Unexpected second-order effects appear over time.",
+                "Institutional adaptation lags behind social behavior.",
+                "System equilibrium shifts unpredictably."
+            ]
         }
-
     }
 
-    s=scenarios[kind]
+    s = responses[kind]
 
-    system_states=[
-        "Health stability: adaptive stress",
-        "Society: elevated uncertainty",
-        "Technology: accelerated innovation",
-        "Environment: systemic ripple effects",
-        "Geopolitics: strategic instability",
-        "Institutions: resilience under pressure"
-    ]
-
-    random.shuffle(system_states)
-
-    result=f"""
-🌍 LIVE WORLD CONTEXT
-
+    news_context = f"""
+GLOBAL CONTEXT SIGNALS:
 {news}
+"""
 
-================ DAY 1 ================
-{s['day']}
+    result = f"""
+🌍 WORLD CONTEXT
+{news_context}
 
-================ MONTH 1 ==============
-{s['month']}
+================ INSTITUTIONS RESPONSE ================
+- {random.choice(s['institutions'])}
+- {random.choice(s['institutions'])}
 
-================ YEAR 1 ===============
-{s['year']}
+================ SOCIETAL RESPONSE ================
+- {random.choice(s['society'])}
+- {random.choice(s['society'])}
 
-================ SYSTEM DYNAMICS ===============
-- {system_states[0]}
-- {system_states[1]}
-- {system_states[2]}
+================ MEDIA & INFORMATION ================
+- {random.choice(s['media'])}
 
-Emergent civilization trajectory:
-The event generates second-order effects beyond the initial shock and shifts long-term global equilibrium.
+================ EMERGENT EFFECTS ================
+- {random.choice(s['emergent'])}
+- {random.choice(s['emergent'])}
+
+================ SYSTEM TRAJECTORY ================
+The event triggers cascading interactions across institutions, society, and information systems, producing non-linear global adaptation patterns.
 """
 
     return result
@@ -172,14 +201,14 @@ The event generates second-order effects beyond the initial shock and shifts lon
 
 if st.button("Simulate Civilization"):
 
-    if user_input.strip()=="":
+    if user_input.strip() == "":
         st.warning("Please enter a global event.")
 
     else:
 
-        with st.spinner("Simulating world evolution..."):
-            result=simulate_world(user_input)
+        with st.spinner("Simulating civilization response..."):
+            result = simulate_world(user_input)
 
         st.success("Simulation complete")
-        st.markdown("## 🌍 Civilization Output")
+        st.markdown("## 🌍 Civilization Reaction Output")
         st.write(result)
