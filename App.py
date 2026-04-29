@@ -1,3 +1,6 @@
+import streamlit as st
+from openai import OpenAI
+import os
 st.markdown("""
 <div style="text-align:center; padding: 10px;">
     <h1>🧠 ScenarioOS</h1>
