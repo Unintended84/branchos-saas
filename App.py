@@ -1,4 +1,6 @@
+
 import streamlit as st
+import os
 from openai import OpenAI
 
 # ---------------- PAGE ----------------
@@ -18,146 +20,109 @@ Emergent Civilization Simulator — modeling how billions of diverse actors reac
 </div>
 """, unsafe_allow_html=True)
 
-
 st.info("""
 ScenarioOS does not use fixed scenarios.
 
 It simulates emergent reactions across:
 
-• Governments
-• Social classes
-• Cultures
-• Institutions
-• Markets
-• Online populations
-• Adversarial actors
-• Ordinary citizens
+• Governments  
+• Social classes  
+• Cultures  
+• Institutions  
+• Markets  
+• Online populations  
+• Adversarial actors  
+• Ordinary citizens  
 
 Outcomes emerge from interacting behaviors.
 """)
 
+# ---------------- CLIENT (GROQ + LLAMA3) ----------------
 
-import os
-client = OpenAI(
-    api_key=os.getenv("GROQ_API_KEY"),
-    base_url="[api.groq.com](https://api.groq.com/openai/v1)"
-)
+# Recupera la chiave dai secrets del repository o da variabili d'ambiente
+GROQ_KEY = os.getenv("GROQ_API_KEY")
 
-
+if not GROQ_KEY:
+    st.error("⚠️ Missing GROQ_API_KEY. Add it as a repository secret or environment variable.")
+else:
+    client = OpenAI(
+        api_key=GROQ_KEY,
+        base_url="[api.groq.com](https://api.groq.com/openai/v1)"
+    )
 
 # ---------------- INPUT ----------------
 
 user_input = st.text_area(
     "Enter any event",
-    placeholder="Trump resigns tomorrow... Infinite energy is invented... UFO lands in Amsterdam...",
+    placeholder="Example: Global internet blackout... Infinite clean energy discovered... Major war ends suddenly...",
     height=140
 )
 
+# ---------------- SIMULATION ENGINE ----------------
 
-# ---------------- COLLECTIVE SIM ENGINE ----------------
+SYSTEM_PROMPT = """You are a civilization-scale simulator.
 
-def simulate_civilization(event):
+You do not analyze or comment — you simulate, producing concrete timelines.
 
-    prompt=f"""
-Simulate this event as if billions of heterogeneous actors react to it.
+Your structure must contain:
 
-EVENT:
-{event}
+[ACTOR: <actor name>]
+LOCATION: <region or country>
+INITIAL STATE: <what they were doing before>
+T+0h: <immediate action>
+T+6h: <evolving reaction>
+T+24h: <stabilized attitude or behavior>
+INTERACTS WITH: <groups and nature of interaction>
+SECOND-ORDER TRIGGER: <unexpected ripple effects>
 
-Model civilization as interacting populations with conflicting motives.
+At least 8 actor groups with conflicting motives must appear.
 
-Actors include:
-- governments
-- military actors
-- different social classes
-- scientists
-- workers
-- wealthy elites
-- poor populations
-- online crowds
-- religious groups
-- opportunists
-- rival states
-- ordinary families
+After listing actors, write:
+
+[COLLISION MATRIX]
+List 3–5 real clashes or cooperations between actors (what happens concretely).
+
+[EMERGENT CASCADE]
+List 2–3 unintended system-wide consequences emerging from those interactions.
+
+[SYSTEM STATE T+7 DAYS]
+Show the transformed social and political order.
 
 Rules:
-- Do NOT give generic analysis.
-- Do NOT act like a chatbot.
-- Do NOT give advice.
-
-Simulate emergent behavior.
-
-Show:
-
-1. DISTRIBUTED IMMEDIATE REACTIONS
-How different groups react differently.
-
-2. COLLISIONS BETWEEN GROUPS
-Conflicts, coordination failures, panic, cooperation.
-
-3. EMERGENT SECOND-ORDER EFFECTS
-Unexpected consequences produced by interactions.
-
-4. CIVILIZATION REORGANIZATION
-How society may begin restructuring.
-
-Focus on "what would happen if humanity collectively reacted",
-not abstract commentary.
+- Always write in the past tense (describe what happened).
+- Never hedge with “would” or “might”.
+- Be concrete, detailed, specific.
+- Include at least one irrational or wildcard actor (crime network, online mob, rogue AI, etc.).
 """
 
-    res = client.chat.completions.create(
-        model="gpt-4o-mini",
-        temperature=1.0,
+def simulate_civilization(event: str):
+    prompt = f"EVENT INJECTION AT T=0:\n{event}\n\nRun the full simulation now."
+    
+    response = client.chat.completions.create(
+        model="llama3-70b-8192",
+        temperature=0.9,
+        max_tokens=4000,
         messages=[
-            {
-                "role":"system",
-                "content":"""
-You are not an assistant.
-
-You are an emergent civilization simulator.
-
-Model distributed collective behavior,
-not opinions.
-
-Think in interacting populations,
-feedback loops,
-social contagion,
-system shocks,
-and emergent outcomes.
-"""
-            },
-            {
-                "role":"user",
-                "content":prompt
-            }
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": prompt}
         ]
     )
 
-    return res.choices[0].message.content
+    return response.choices[0].message.content.strip()
 
+# ---------------- RUN SIMULATION ----------------
 
-
-# ---------------- BUTTON ----------------
-
-if st.button("Simulate Civilization"):
-
-    if user_input.strip()=="":
-        st.warning("Please enter an event.")
-
+if st.button("🚀 Simulate Civilization"):
+    if not user_input.strip():
+        st.warning("Please enter an event first.")
+    elif not GROQ_KEY:
+        st.error("Missing API key configuration.")
     else:
-
-        try:
-
-            with st.spinner(
-                "Simulating billions of interacting actors..."
-            ):
-                result=simulate_civilization(user_input)
-
-            st.success("Simulation complete")
-            st.markdown("## 🌍 Emergent Civilization Output")
-            st.write(result)
-
-        except Exception:
-            st.error(
-              "Simulation unavailable (API credit / rate limit issue)."
-            )
+        with st.spinner("Simulating billions of interacting actors (via Llama 3 on Groq)..."):
+            try:
+                result = simulate_civilization(user_input)
+                st.success("✅ Simulation complete!")
+                st.markdown("## 🌍 Emergent Civilization Output")
+                st.markdown(result)
+            except Exception as e:
+                st.error(f"Simulation failed: {e}")
