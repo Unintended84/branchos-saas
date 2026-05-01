@@ -2,6 +2,13 @@ import streamlit as st
 import os
 from openai import OpenAI
 
+# ---------------- CONFIG ----------------
+
+DEFAULT_MODEL = "llama-3.3-70b-versatile"
+
+MODEL_NAME = os.getenv("MODEL_NAME", DEFAULT_MODEL)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
 # ---------------- PAGE ----------------
 
 st.set_page_config(
@@ -14,15 +21,13 @@ st.markdown("""
 <div style="text-align:center;padding:10px;">
 <h1>🧠 ScenarioOS</h1>
 <p style="color:gray;font-size:16px;">
-Emergent Civilization Simulator — modeling how billions of diverse actors react to world-changing events.
+Emergent Civilization Simulator — modeling how billions of actors react to world-changing events.
 </p>
 </div>
 """, unsafe_allow_html=True)
 
 st.info("""
-ScenarioOS does not use fixed scenarios.
-
-It simulates emergent reactions across:
+ScenarioOS simulates emergent reactions across:
 
 • Governments  
 • Social classes  
@@ -33,93 +38,112 @@ It simulates emergent reactions across:
 • Adversarial actors  
 • Ordinary citizens  
 
-Outcomes emerge from interacting behaviors.
+Outcomes emerge from interaction, not scripts.
 """)
 
-# ---------------- CLIENT (GROQ + LLAMA3) ----------------
+# ---------------- API CHECK ----------------
 
-GROQ_KEY = os.getenv("GROQ_API_KEY")
-
-if not GROQ_KEY:
-    st.error("⚠️ Missing GROQ_API_KEY. Add it as a repository secret or environment variable.")
+if not GROQ_API_KEY:
+    st.error("⚠️ Missing GROQ_API_KEY. Set it in your environment variables.")
     st.stop()
 
 client = OpenAI(
-    api_key=GROQ_KEY,
+    api_key=GROQ_API_KEY,
     base_url="https://api.groq.com/openai/v1"
-) 
+)
 
 # ---------------- INPUT ----------------
 
 user_input = st.text_area(
-    "Enter any event",
-    placeholder="Example: Global internet blackout... Infinite clean energy discovered... Major war ends suddenly...",
+    "Enter an event",
+    placeholder="Example: Global internet blackout... AI takes control of financial markets... Sudden oil collapse...",
     height=140
 )
 
-# ---------------- SIMULATION ENGINE ----------------
+col1, col2 = st.columns(2)
 
-SYSTEM_PROMPT = """You are a civilization-scale simulator.
+with col1:
+    temperature = st.slider("Creativity", 0.0, 1.0, 0.9)
 
-You do not analyze or comment — you simulate, producing concrete timelines.
+with col2:
+    max_tokens = st.slider("Detail level", 500, 4000, 2500)
 
-Your structure must contain:
+# ---------------- SYSTEM PROMPT ----------------
+
+SYSTEM_PROMPT = """You are a civilization-scale simulation engine.
+
+You do NOT explain. You simulate.
+
+FORMAT STRICTLY:
 
 [ACTOR: <actor name>]
-LOCATION: <region or country>
-INITIAL STATE: <what they were doing before>
-T+0h: <immediate action>
-T+6h: <evolving reaction>
-T+24h: <stabilized attitude or behavior>
-INTERACTS WITH: <groups and nature of interaction>
-SECOND-ORDER TRIGGER: <unexpected ripple effects>
+LOCATION: <region>
+INITIAL STATE: <before event>
+T+0h: <immediate reaction>
+T+6h: <reaction evolves>
+T+24h: <stabilized behavior>
+INTERACTS WITH: <who and how>
+SECOND-ORDER TRIGGER: <unexpected consequence>
 
-At least 8 actor groups with conflicting motives must appear.
+Minimum 8 actors with conflicting motives.
 
-After listing actors, write:
+Then:
 
 [COLLISION MATRIX]
-List 3–5 real clashes or cooperations between actors (what happens concretely).
+3–5 concrete clashes or alliances.
 
 [EMERGENT CASCADE]
-List 2–3 unintended system-wide consequences emerging from those interactions.
+2–3 system-wide unintended consequences.
 
 [SYSTEM STATE T+7 DAYS]
-Show the transformed social and political order.
+Describe the transformed world.
 
-Rules:
-- Always write in the past tense (describe what happened).
-- Never hedge with "would" or "might".
-- Be concrete, detailed, specific.
-- Include at least one irrational or wildcard actor (crime network, online mob, rogue AI, etc.).
+RULES:
+- Past tense only
+- No "would", "might"
+- Be specific and grounded
+- Include at least one irrational actor (mob, rogue AI, cartel, etc.)
 """
 
-def simulate_civilization(event: str):
-    prompt = f"EVENT INJECTION AT T=0:\n{event}\n\nRun the full simulation now."
-    
-    response = client.chat.completions.create(
-        model="llama3-70b-8192",
-        temperature=0.9,
-        max_tokens=4000,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt}
-        ]
-    )
+# ---------------- SIMULATION ----------------
 
-    return response.choices[0].message.content.strip()
+def run_simulation(event: str):
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": f"EVENT INJECTION AT T=0:\n{event}\n\nRun simulation."}
+            ]
+        )
 
-# ---------------- RUN SIMULATION ----------------
+        return response.choices[0].message.content.strip()
 
-if st.button("🚀 Simulate Civilization"):
+    except Exception as e:
+        return f"ERROR: {str(e)}"
+
+# ---------------- RUN ----------------
+
+if st.button("🚀 Simulate Civilization", use_container_width=True):
+
     if not user_input.strip():
-        st.warning("Please enter an event first.")
-    else:
-        with st.spinner("Simulating billions of interacting actors (via Llama 3 on Groq)..."):
-            try:
-                result = simulate_civilization(user_input)
-                st.success("✅ Simulation complete!")
-                st.markdown("## 🌍 Emergent Civilization Output")
-                st.markdown(result)
-            except Exception as e:
-                st.error(f"Simulation failed: {e}")
+        st.warning("Insert an event first.")
+        st.stop()
+
+    with st.spinner(f"Running simulation using {MODEL_NAME}..."):
+
+        result = run_simulation(user_input)
+
+        if result.startswith("ERROR"):
+            st.error(result)
+        else:
+            st.success("Simulation complete")
+            st.markdown("## 🌍 Output")
+            st.markdown(result)
+
+# ---------------- FOOTER ----------------
+
+st.markdown("---")
+st.caption(f"Model: {MODEL_NAME} | Powered by Groq")
