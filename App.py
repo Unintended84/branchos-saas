@@ -47,6 +47,7 @@ if not GROQ_KEY:
 client = OpenAI(
     api_key=GROQ_KEY,
     base_url="https://api.groq.com/openai/v1"
+) 
 
 # ---------------- INPUT ----------------
 
