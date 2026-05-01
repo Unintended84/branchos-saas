@@ -1,4 +1,4 @@
-import streamlit as st
+    import streamlit as st
 import os
 from openai import OpenAI
 
@@ -109,6 +109,7 @@ RULES:
 - Use natural time references (no T+X format)
 - When relevant, include real local times (e.g., 08:30, late evening)
 - Include at least one irrational actor (mob, rogue AI, cartel, etc.)
+- IMPORTANT: Respond in the SAME LANGUAGE as the user input.
 """
 
 # ---------------- SIMULATION ----------------
