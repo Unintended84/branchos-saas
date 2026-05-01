@@ -1,4 +1,3 @@
-
 import streamlit as st
 import os
 from openai import OpenAI
@@ -39,16 +38,16 @@ Outcomes emerge from interacting behaviors.
 
 # ---------------- CLIENT (GROQ + LLAMA3) ----------------
 
-# Recupera la chiave dai secrets del repository o da variabili d'ambiente
 GROQ_KEY = os.getenv("GROQ_API_KEY")
 
 if not GROQ_KEY:
     st.error("⚠️ Missing GROQ_API_KEY. Add it as a repository secret or environment variable.")
-else:
-    client = OpenAI(
-        api_key=GROQ_KEY,
-        base_url="[api.groq.com](https://api.groq.com/openai/v1)"
-    )
+    st.stop()
+
+client = OpenAI(
+    api_key=GROQ_KEY,
+    base_url="[api.groq.com](https://api.groq.com/openai/v1)"
+)
 
 # ---------------- INPUT ----------------
 
@@ -90,7 +89,7 @@ Show the transformed social and political order.
 
 Rules:
 - Always write in the past tense (describe what happened).
-- Never hedge with “would” or “might”.
+- Never hedge with "would" or "might".
 - Be concrete, detailed, specific.
 - Include at least one irrational or wildcard actor (crime network, online mob, rogue AI, etc.).
 """
@@ -115,10 +114,8 @@ def simulate_civilization(event: str):
 if st.button("🚀 Simulate Civilization"):
     if not user_input.strip():
         st.warning("Please enter an event first.")
-    elif not GROQ_KEY:
-        st.error("Missing API key configuration.")
     else:
-        with st.spinner("Simulating billions of interacting actors (via Llama 3 on Groq)..."):
+        with st.spinner("Simulating billions of interacting actors (via Llama 3 on Groq)..."):
             try:
                 result = simulate_civilization(user_input)
                 st.success("✅ Simulation complete!")
