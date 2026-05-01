@@ -79,9 +79,13 @@ FORMAT STRICTLY:
 [ACTOR: <actor name>]
 LOCATION: <region>
 INITIAL STATE: <before event>
-T+0h: <immediate reaction>
-T+6h: <reaction evolves>
-T+24h: <stabilized behavior>
+
+TIME PROGRESSION:
+- Within minutes: <immediate reaction>
+- Early hours: <reaction evolves>
+- By the end of the day: <state by evening>
+- The following day: <stabilized behavior>
+
 INTERACTS WITH: <who and how>
 SECOND-ORDER TRIGGER: <unexpected consequence>
 
@@ -95,13 +99,15 @@ Then:
 [EMERGENT CASCADE]
 2–3 system-wide unintended consequences.
 
-[SYSTEM STATE T+7 DAYS]
+[SYSTEM STATE — 7 DAYS LATER]
 Describe the transformed world.
 
 RULES:
 - Past tense only
 - No "would", "might"
 - Be specific and grounded
+- Use natural time references (no T+X format)
+- When relevant, include real local times (e.g., 08:30, late evening)
 - Include at least one irrational actor (mob, rogue AI, cartel, etc.)
 """
 
